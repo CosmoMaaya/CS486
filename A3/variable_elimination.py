@@ -169,34 +169,43 @@ def inference(factorList, queryVariables, orderedListOfHiddenVariables, evidence
                     factorList[i] = None
                 else:
                     factorList[i] = restricted_factor
+                # print(restricted_factor)
     
+    # Eliminate constants
     factorList = [f for f in factorList if f is not None]
 
+    # Start variable elimination
     for elimiating_var in orderedListOfHiddenVariables:
         summing_factors = []
+        # Find out what factors will be summed out
         for factor in factorList:
             if elimiating_var in factor.var_mapping.keys():
                 summing_factors.append(factor)
         
+        # Remove the summing factors from the list, will add the result back later
         for summing_factor in summing_factors:
             factorList.remove(summing_factor)
         
+        # Multiply the factors by pairs
         cur_idx = 1
         cur_factor = summing_factors[0]
         while cur_idx < len(summing_factors):
             cur_factor = multiply(cur_factor, summing_factors[cur_idx])
             cur_idx += 1
         
+        # Summing the final product factor to eliminate the variable
         res_factor = summout(cur_factor, elimiating_var)
-        print(res_factor)
+        # print(res_factor)
         factorList.append(res_factor)
 
+    # Do a final multiplication to get the final result
     cur_idx = 1
     cur_factor = factorList[0]
     while cur_idx < len(factorList):
         cur_factor = multiply(cur_factor, factorList[cur_idx])
         cur_idx += 1
-    print(cur_factor)
+    
+    # Normalize the result
     final_factor = normalize(cur_factor)
     return final_factor
 
@@ -229,8 +238,17 @@ f5_OC_CRP.initializeValues(values)
 
 factorList = [f0_Trav, f1_Trav_Fraud, f2_Trav_Fard_FP, f3_OC_Fraud_IP, f4_OC, f5_OC_CRP]
 
-res = inference(factorList, [Fraud], [Trav, FP, IP, OC, CRP], [])
+# res = inference(factorList, [Fraud], [Trav, FP, IP, OC, CRP], [])
+# print(res)
+# res = inference(factorList, [Fraud], [OC], [(FP, T), (IP, F), (CRP, T), (Trav, T)])
+# print(res)
+res = inference(factorList, [Fraud], [Trav, FP, OC], [(IP, T), (CRP, T)])
 print(res)
+# print("#####################################################")
+# res = inference(factorList, [Fraud], [Trav, FP, OC, CRP], [(IP, T)])
+# print(res)
+
+
 #############################################
 # RESTRICTION TEST
 # factor = Factor(["X", "Y", "Z"])
